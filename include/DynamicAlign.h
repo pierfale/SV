@@ -21,7 +21,7 @@ public:
 	template<typename Sequence1Type, typename Sequence2Type, template<typename, typename...> class OutputType>
 	static void process(const Sequence1Type& sequence, const Sequence2Type& read, int match_score, int mismatch_score, int offset_score, int k, OutputType<Command>& output) {
 
-		int* dynamic_array = new int[(sequence.size()+1)*read.size()];
+		int* dynamic_array = new int[(sequence.size()+1)*(read.size()+1)];
 
 	#	define	COORD_2D(X, Y) (Y)*(sequence.size()+1)+(X)
 	#	define	GET_I(C) (C)%(sequence.size()+1)
@@ -40,7 +40,7 @@ public:
 			dynamic_array[COORD_2D(i, 0)] = i*offset_score;
 		}
 
-		for(unsigned int j=1; j<read.size(); j++) {
+		for(unsigned int j=1; j<read.size()+1; j++) {
 			if(!IN_K_BAND(0, j))
 				break;
 			dynamic_array[COORD_2D(0, j)] = j*offset_score;
@@ -49,24 +49,29 @@ public:
 		/*
 		 *	Fill dynamic array
 		 */
-		for(unsigned int j=1; j<read.size(); j++) {
+		for(unsigned int j=1; j<read.size()+1; j++) {
 			for(unsigned int i=START_K_BAND(j) == 0 ? 1 : START_K_BAND(j); i<sequence.size()+1; i++) {
 
 				if(!IN_K_BAND(i, j))
 					break;
 				int score_insert = IN_K_BAND(i-1, j) ? dynamic_array[COORD_2D(i-1, j)]+offset_score : std::numeric_limits<int>::min();
 				int score_delete = IN_K_BAND(i, j-1)  ? dynamic_array[COORD_2D(i, j-1)]+offset_score : std::numeric_limits<int>::min();
-				int score_match = dynamic_array[COORD_2D(i-1, j-1)]+(sequence[j-1] == read[i-1] ? match_score : mismatch_score);
+				int score_match = dynamic_array[COORD_2D(i-1, j-1)]+(sequence[i-1] == read[j-1] ? match_score : mismatch_score);
 				dynamic_array[COORD_2D(i, j)] = score_insert > score_delete ? (score_insert > score_match ? score_insert : score_match) : (score_delete > score_match ? score_delete : score_match);
+
 
 			}
 		}
 /*
-		std::cout << "sequence.size = " << sequence.size() << "; read.size = " << read.size() << std::endl;
+		std::cout << " \t";
+		for(unsigned int i=0; i<sequence.size()+1; i++)
+			std::cout << (i == 0 ? ' ' :sequence[i-1]) << "\t";
+		std::cout << std::endl;
+
 		for(unsigned int j=0; j<read.size()+1; j++) {
-			std::cout << j << ">";
+			std::cout << (j == 0 ? ' ' : read[j-1]) << "\t";
 			for(unsigned int i=0; i<sequence.size()+1; i++) {
-				std::cout << dynamic_array[COORD_2D(i, j)] << " ";
+				std::cout << (IN_K_BAND(i, j) ? dynamic_array[COORD_2D(i, j)] : 0) << "\t";
 			}
 			std::cout << std::endl;
 		}
@@ -75,11 +80,11 @@ public:
 		 *	Search max
 		 */
 
-		int* max_ptr = std::max_element(&dynamic_array[COORD_2D(START_K_BAND(read.size()), read.size()-1)], &dynamic_array[COORD_2D(sequence.size()+1, read.size()-1)]);
+		int* max_ptr = std::max_element(&dynamic_array[COORD_2D(START_K_BAND(read.size()), read.size())], &dynamic_array[COORD_2D(sequence.size()+1, read.size())]);
 
 		std::pair<int, int> current_coord(GET_I(max_ptr-dynamic_array), GET_J(max_ptr-dynamic_array));
 
-		std::cout << "max : (" << current_coord.first << ";" << current_coord.second << ") = " << *max_ptr << std::endl;
+		//std::cout << "max : (" << current_coord.first << ";" << current_coord.second << ") = " << *max_ptr << std::endl;
 
 		/*
 		 *	Backtrace
@@ -89,11 +94,11 @@ public:
 			int current_score = dynamic_array[COORD_2D(current_coord.first, current_coord.second)];
 
 			if(IN_K_BAND(current_coord.first-1, current_coord.second) & current_coord.first > 0 && dynamic_array[COORD_2D(current_coord.first-1, current_coord.second)] == current_score - offset_score) {
-				output.push_back(INSERT);
+				output.push_back(DELETE);
 				current_coord = std::pair<unsigned int, unsigned int>(current_coord.first-1, current_coord.second);
 			}
 			else if(IN_K_BAND(current_coord.first, current_coord.second-1) & current_coord.second > 0 && dynamic_array[COORD_2D(current_coord.first, current_coord.second-1)] == current_score - offset_score) {
-				output.push_back(DELETE);
+				output.push_back(INSERT);
 				current_coord = std::pair<unsigned int, unsigned int>(current_coord.first, current_coord.second-1);
 			}
 			else if(current_coord.first > 0 && current_coord.second > 0 && dynamic_array[COORD_2D(current_coord.first-1, current_coord.second-1)] == current_score - match_score) {
@@ -104,10 +109,11 @@ public:
 				output.push_back(MISMATCH);
 				current_coord = std::pair<unsigned int, unsigned int>(current_coord.first-1, current_coord.second-1);
 			}
-
 			else
 				throw std::runtime_error("something wrong during backtrace...");
 		}
+
+		delete dynamic_array;
 	}
 
 	template<template<typename, typename...> class OutputType>
@@ -125,9 +131,9 @@ public:
 		unsigned int cursor_sequence1 = 0;
 		unsigned int cursor_sequence2 = 0;
 
-		for(auto it=backtrace.rbegin(); it < backtrace.rend(); it+=line_length) {
+		for(auto it=backtrace.begin(); it < backtrace.end(); it+=line_length) {
 			unsigned int i = 0;
-			for(auto it2(it); it2 != backtrace.rend() && i < line_length; ++it2, i++) {
+			for(auto it2(it); it2 != backtrace.end() && i < line_length; ++it2, i++) {
 				if(*it2 == INSERT)
 					std::cout << "-";
 				else
@@ -139,7 +145,7 @@ public:
 			}
 			std::cout << std::endl;
 			i = 0;
-			for(auto it2(it); it2 != backtrace.rend() && i < line_length; ++it2, i++) {
+			for(auto it2(it); it2 != backtrace.end() && i < line_length; ++it2, i++) {
 				if(*it2 == MATCH)
 					std::cout << "|";
 				else
@@ -147,7 +153,7 @@ public:
 			}
 			std::cout << std::endl;
 			i = 0;
-			for(auto it2(it); it2 != backtrace.rend() && i < line_length; ++it2, i++) {
+			for(auto it2(it); it2 != backtrace.end() && i < line_length; ++it2, i++) {
 				if(*it2 == DELETE)
 					std::cout << "-";
 				else

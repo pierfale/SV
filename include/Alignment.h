@@ -22,7 +22,9 @@ public:
 		std::vector<std::pair<Index, Index>> list_seed;
 		for(unsigned int begin=/*0*/SEED_LENGTH; begin+SEED_LENGTH < read.size(); begin += SEED_LENGTH) {
 			std::vector<Index> list_index;
-			index.search(read.substr(begin, SEED_LENGTH), list_index, 2);
+			Sequence2Type current_read;
+			current_read.substr(read, begin, SEED_LENGTH);
+			index.search(current_read, list_index, 2);
 			for(auto it = list_index.begin(); it != list_index.end(); ++it)
 				list_seed.push_back(std::pair<Index, Index>(begin, *it));
 		}
@@ -33,45 +35,47 @@ public:
 
 		for(auto it = std::begin(list_seed); it != std::end(list_seed); ++it) {
 
-			std::cout << it->first << "; " << it->second << std::endl;
+			if(it->second-k_length < it->first || it->second+read.size()-it->first+k_length >= ref_sequence.size())
+				continue;
 
+			Sequence1Type seq_before;
+			seq_before.substr(ref_sequence, std::max((int)it->second-(int)it->first-(int)k_length, 0), it->second);
+			seq_before.reverse();
+			Sequence1Type seq_after;
+			seq_after.substr(ref_sequence, it->second, std::min(it->second+read.size()-it->first+k_length, ref_sequence.size()));
 
-			Sequence1Type seq_before = ref_sequence.substr(std::max(it->second-it->first-k_length, 0u), it->second).reverse();
-			//Sequence1Type seq_after = ref_sequence.substr(it->second, std::min(read.size()-it->first+k_length, ref_sequence.size()));
-
-			Sequence2Type read_before = read.substr(0, it->first).reverse();
-			//Sequence2Type read_after = read.substr(it->first, read.size());
+			Sequence2Type read_before;
+			read_before.substr(read, 0, it->first);
+			read_before.reverse();
+			Sequence2Type read_after;
+			read_after.substr(read, it->first, read.size());
 
 			std::vector<DynamicAlign::Command> commands_before;
 			std::vector<DynamicAlign::Command> commands_after;
 
 			DynamicAlign::process(seq_before, read_before, 5, -4, -10, k_length, commands_before);
-
-			//std::cout << ref_sequence.substr(it->second-k_length, it->second+it->first) << std::endl;
-
-
-			//DynamicAlign::process(seq_after, read_after, 5, -4, -10, k_length, commands_after);
+			DynamicAlign::process(seq_after, read_after, 5, -4, -10, k_length, commands_after);
 
 			std::vector<DynamicAlign::Command> commands;
 
-			commands.insert(commands.end(), commands_before.rbegin(), commands_before.rend());
-			//commands.insert(commands.end(), commands_after.begin(), commands_after.end());
+			commands.insert(commands.end(), commands_before.begin(), commands_before.end());
+			commands.insert(commands.end(), commands_after.rbegin(), commands_after.rend());
 
 			if((float)DynamicAlign::error_count(commands)/(float)commands.size() <= 0.5) {
-				std::cout << "Read (error_rate : " << ((float)DynamicAlign::error_count(commands)/(float)commands.size()*100.0f) << "%)" << std::endl;
-				//DynamicAlign::display(ref_sequence.substr(it->second-k_length, it->second) , read, commands, 80);
-
 				unsigned int count_sequence_before = 0;
 				for(auto it=commands_before.rbegin(); it != commands_before.rend(); ++it)
 					if(*it != DynamicAlign::INSERT)
 						count_sequence_before++;
 
-				DynamicAlign::display(seq_before.substr(0, count_sequence_before).reverse() , read_before.reverse(), commands, 80);
-			//	DynamicAlign::display(seq_after , read_after, commands_after, 80);
+				Sequence1Type seq_display;
+				seq_display.substr(seq_before, 0, count_sequence_before);
+				seq_display.reverse();
+				seq_display.append(seq_after);
 
-				for(auto it=commands_before.rbegin(); it != commands_before.rend(); ++it)
-					std::cout << *it << " " << std::endl;
-return;
+				std::cout << "Read (error_rate : " << ((float)DynamicAlign::error_count(commands)/(float)commands.size()*100.0f) << "%) | Start at position " << (it->second-count_sequence_before) << std::endl;
+
+				DynamicAlign::display(seq_display, read, commands, 80);
+				std::cout << std::endl;
 			}
 		}
 

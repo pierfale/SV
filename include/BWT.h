@@ -41,7 +41,8 @@ public:
 
 	template<typename SequenceType>
 	void pre_compute(const SequenceType& seq) {
-		SequenceType sequence = seq.add_end_marker('$');
+		SequenceType sequence;
+		sequence.add_end_marker(seq, '$');
 		_size = sequence.size();
 
 		SuffixTable::pre_compute(sequence);

@@ -16,16 +16,16 @@ char StaticFormat::operator[](unsigned int cursor) const {
 	return _sequence[cursor];
 }
 
-StaticFormat StaticFormat::add_end_marker(char marker) const {
-	return StaticFormat(_sequence+marker);
+void StaticFormat::add_end_marker(const StaticFormat& model, char marker) {
+	_sequence = model._sequence+marker;
 }
 
-StaticFormat StaticFormat::substr(unsigned int begin, unsigned int end) const {
-	return StaticFormat(_sequence.substr(begin, end-begin));
+void StaticFormat::substr(const StaticFormat& model, unsigned int begin, unsigned int end) {
+	_sequence = model._sequence.substr(begin, end-begin);
 }
 
-StaticFormat StaticFormat::reverse() const {
-	return StaticFormat(std::string(_sequence.rbegin(), _sequence.rend()));
+void StaticFormat::reverse(){
+	std::reverse(_sequence.begin(), _sequence.end());
 }
 
 std::ostream& operator<<(std::ostream& os, const StaticFormat& that) {

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stdexcept>
 #include <cstring>
+#include <algorithm>
 
 class DataFASTA {
 
@@ -18,9 +19,10 @@ public:
 	char operator[](unsigned int cursor) const;
 
 
-	DataFASTA add_end_marker(char marker) const;
-	DataFASTA substr(unsigned int begin, unsigned int end) const;
-	DataFASTA reverse() const;
+	void add_end_marker(const DataFASTA& model, char marker);
+	void substr(const DataFASTA& model, unsigned int begin, unsigned int end);
+	void reverse();
+	void append(const DataFASTA& that);
 
 	friend std::ostream& operator<<(std::ostream& os, const DataFASTA& that);
 

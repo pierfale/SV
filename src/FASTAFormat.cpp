@@ -43,31 +43,27 @@ void ParserFASTA::process(const std::string& filename, DataFASTA& data) {
 
 }
 
-DataFASTA DataFASTA::add_end_marker(char marker) const {
-	DataFASTA data;
-	data._sequence = (char*)malloc(_length);
-	memcpy(data._sequence, _sequence, _length);
-	data._length = _length+1;
-	data._sequence[_length] = marker;
-	return data;
+void DataFASTA::add_end_marker(const DataFASTA& model, char marker) {
+	_sequence = (char*)malloc(model._length+1);
+	memcpy(_sequence, model._sequence, model._length);
+	_length = model._length+1;
+	_sequence[model._length] = marker;
 }
 
-DataFASTA DataFASTA::substr(unsigned int begin, unsigned int end) const {
-	DataFASTA data;
-	data._length = end > _length ? _length-begin : end-begin;
-	data._sequence = (char*)malloc(data._length);
-	memcpy(data._sequence, _sequence+begin, data._length);
-
-	return data;
+void DataFASTA::substr(const DataFASTA& model, unsigned int begin, unsigned int end) {
+	_length = end > model._length ? model._length-begin : end-begin;
+	_sequence = (char*)malloc(_length);
+	memcpy(_sequence, model._sequence+begin, _length);
 }
 
-DataFASTA DataFASTA::reverse() const {
-	DataFASTA data;
-	data._sequence = (char*)malloc(_length);
-	for(unsigned int i=0; i<_length; i++)
-		data._sequence[_length-i-1] = _sequence[i];
-	data._length = _length;
-	return data;
+void DataFASTA::reverse() {
+	std::reverse(&_sequence[0], &_sequence[_length]);
+}
+
+void DataFASTA::append(const DataFASTA& that) {
+	_sequence = (char*)realloc(_sequence, _length+that._length);
+	memcpy(_sequence+_length, that._sequence, that._length);
+	_length += that._length;
 }
 
 std::ostream& operator<<(std::ostream& os, const DataFASTA& that)  {

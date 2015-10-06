@@ -2,7 +2,8 @@
 #define _STATIC_FORMAT_H
 
 #include <string>
-#include <iostream>
+#include <sstream>
+#include <algorithm>
 
 class StaticFormat {
 
@@ -12,9 +13,10 @@ public:
 
 	unsigned int size() const;
 	char operator[](unsigned int cursor) const;
-	StaticFormat add_end_marker(char marker) const;
-	StaticFormat substr(unsigned int begin, unsigned int end) const;
-	StaticFormat reverse() const;
+
+	void add_end_marker(const StaticFormat& model, char marker);
+	void substr(const StaticFormat& model, unsigned int begin, unsigned int end);
+	void reverse();
 
 	friend std::ostream& operator<<(std::ostream& os, const StaticFormat& that);
 
