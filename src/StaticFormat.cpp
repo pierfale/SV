@@ -28,6 +28,10 @@ void StaticFormat::reverse(){
 	std::reverse(_sequence.begin(), _sequence.end());
 }
 
+void StaticFormat::append(const StaticFormat& that) {
+	_sequence += that._sequence;
+}
+
 std::ostream& operator<<(std::ostream& os, const StaticFormat& that) {
 	for(unsigned int i=0; i<that.size(); i++)
 		os.put(that[i]);

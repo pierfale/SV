@@ -17,6 +17,8 @@ public:
 	void add_end_marker(const StaticFormat& model, char marker);
 	void substr(const StaticFormat& model, unsigned int begin, unsigned int end);
 	void reverse();
+	void append(const StaticFormat& that);
+
 
 	friend std::ostream& operator<<(std::ostream& os, const StaticFormat& that);
 

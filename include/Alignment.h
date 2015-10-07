@@ -20,10 +20,10 @@ public:
 
 #define SEED_LENGTH 10
 		std::vector<std::pair<Index, Index>> list_seed;
-		for(unsigned int begin=/*0*/SEED_LENGTH; begin+SEED_LENGTH < read.size(); begin += SEED_LENGTH) {
+		for(unsigned int begin=0; begin+SEED_LENGTH < read.size(); begin += SEED_LENGTH) {
 			std::vector<Index> list_index;
 			Sequence2Type current_read;
-			current_read.substr(read, begin, SEED_LENGTH);
+			current_read.substr(read, begin, begin+SEED_LENGTH);
 			index.search(current_read, list_index, 2);
 			for(auto it = list_index.begin(); it != list_index.end(); ++it)
 				list_seed.push_back(std::pair<Index, Index>(begin, *it));
@@ -31,7 +31,7 @@ public:
 
 		std::cout << "Seed result size : " << list_seed.size() << std::endl << std::endl;
 
-		int k_length = 2;
+		int k_length = 10;
 
 		for(auto it = std::begin(list_seed); it != std::end(list_seed); ++it) {
 
@@ -61,7 +61,7 @@ public:
 			commands.insert(commands.end(), commands_before.begin(), commands_before.end());
 			commands.insert(commands.end(), commands_after.rbegin(), commands_after.rend());
 
-			if((float)DynamicAlign::error_count(commands)/(float)commands.size() <= 0.5) {
+			if((float)DynamicAlign::error_count(commands)/(float)commands.size() <= 0.2) {
 				unsigned int count_sequence_before = 0;
 				for(auto it=commands_before.rbegin(); it != commands_before.rend(); ++it)
 					if(*it != DynamicAlign::INSERT)
@@ -72,7 +72,9 @@ public:
 				seq_display.reverse();
 				seq_display.append(seq_after);
 
-				std::cout << "Read (error_rate : " << ((float)DynamicAlign::error_count(commands)/(float)commands.size()*100.0f) << "%) | Start at position " << (it->second-count_sequence_before) << std::endl;
+				std::cout << "Read (error_rate : " << ((float)DynamicAlign::error_count(commands)/(float)commands.size()*100.0f)
+						  << "%) | Start at position " << (it->second-count_sequence_before)
+						  << " | Seed position : " << it->first << std::endl;
 
 				DynamicAlign::display(seq_display, read, commands, 80);
 				std::cout << std::endl;

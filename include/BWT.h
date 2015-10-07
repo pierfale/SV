@@ -71,10 +71,15 @@ public:
 			bwt_letter_count[letter_to_index(_bwt[i])]++;
 		}
 
-/*		for(unsigned int i=0; i<_size; i++) {
-			std::cout << i << " :\t" << sequence[_suffix_table[i]] << " " << _bwt[i] << std::endl;
+/*
+		for(unsigned int i=0; i<_size; i++) {
+			std::cout << i << " :\t";// << sequence[_suffix_table[i]] << " " << _bwt[i] << " -> " << _suffix_table[i] << std::endl;
+			for(unsigned int j=_suffix_table[i]; j<sequence.size(); j++)
+				std::cout << sequence[j];
+			std::cout << std::endl;
 		}
-		*/
+
+*/
 	}
 
 	Index rank(Letter l, Index i) {
@@ -92,7 +97,7 @@ public:
 
 	template<typename SequenceType, typename ResultType>
 	void search(const SequenceType& sequence, ResultType& result, unsigned int z) {
-		_search(sequence, result, z, sequence.size()-1, 1, _size-1);
+		_search(sequence, result, z, sequence.size()-1, 0, _size);
 	}
 
 
@@ -138,11 +143,11 @@ private:
 	}
 
 	Index r_min(Letter l, Index prev_r_min) {
-		return _c[letter_to_index(l)]+rank(l, prev_r_min-1)+1;
+		return _c[letter_to_index(l)]+rank(l, prev_r_min);
 	}
 
 	Index r_max(Letter l, Index prev_r_max) {
-		return _c[letter_to_index(l)]+rank(l, prev_r_max);
+		return _c[letter_to_index(l)]+rank(l, prev_r_max+1)-1;
 	}
 
 };

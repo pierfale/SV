@@ -36,14 +36,14 @@ int main(int argc, char** argv) {
 
 	std::vector<Index> list_index;
 
-	sf.search(StaticFormat("TAT"), list_index, 1);
+	sf.search(StaticFormat("gacca"), list_index, 0);
 
 	std::cout << "Result (" << list_index.size() << ") : " << std::endl;
 
 	for(auto it = std::begin(list_index); it != std::end(list_index); ++it) {
 		std::cout << *it << " ";
 		for(int i=0; i<4; i++)
-			std::cout << seq[*it+i];
+			std::cout << sequence1[*it+i];
 		std::cout << std::endl;
 
 	}*/
