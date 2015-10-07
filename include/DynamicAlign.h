@@ -139,10 +139,10 @@ public:
 				else
 					std::cout << (cursor_sequence1 < sequence1.size() ? sequence1[cursor_sequence1++] : ' ');
 			}
-			while(i < line_length && cursor_sequence1 < sequence1.size()) {
+			/*while(i < line_length && cursor_sequence1 < sequence1.size()) {
 				std::cout << sequence1[cursor_sequence1++];
 				i++;
-			}
+			}*/
 			std::cout << std::endl;
 			i = 0;
 			for(auto it2(it); it2 != backtrace.end() && i < line_length; ++it2, i++) {
@@ -159,13 +159,13 @@ public:
 				else
 					std::cout << (cursor_sequence2 < sequence2.size() ? sequence2[cursor_sequence2++] : ' ');
 			}
-			while(i < line_length && cursor_sequence2 < sequence2.size()) {
+		/*	while(i < line_length && cursor_sequence2 < sequence2.size()) {
 				std::cout << sequence2[cursor_sequence2++];
 				i++;
-			}
+			}*/
 			std::cout << std::endl;
 		}
-
+/*
 		while(cursor_sequence1 < sequence1.size() || cursor_sequence2 < sequence2.size()) {
 			if(cursor_sequence1 >= sequence1.size())
 				std::cout << std::endl << std::endl;
@@ -179,7 +179,7 @@ public:
 				std::cout << sequence2[cursor_sequence2++];
 			}
 			std::cout << std::endl;
-		}
+		}*/
 
 	}
 };

@@ -4,19 +4,28 @@
 #include <algorithm>
 #include "BWT.h"
 #include "DynamicAlign.h"
+#include "FASTQFormat.h"
 
 class Alignment {
 
 public:
-	template<typename Sequence1Type, typename Sequence2Type>
-	static void process(const Sequence1Type& ref_sequence, const Sequence2Type& read) {
 
+	template<typename Sequence1Type>
+	static void process(const Sequence1Type& ref_sequence, ParserFASTQ& parser) {
 		std::cout << "Pre compute..." << std::endl;
 		BWT index;
 		index.pre_compute(ref_sequence);
 
+		DataFASTA read;
+		while(parser.next(read)) {
+			std::cout << "### Read " << read << std::endl;
+			process(ref_sequence, read, index);
+		}
 
+	}
 
+	template<typename Sequence1Type, typename Sequence2Type, typename IndexType>
+	static void process(const Sequence1Type& ref_sequence, const Sequence2Type& read, IndexType& index) {
 
 #define SEED_LENGTH 10
 		std::vector<std::pair<Index, Index>> list_seed;

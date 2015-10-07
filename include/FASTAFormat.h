@@ -15,6 +15,8 @@ public:
 	DataFASTA();
 	~DataFASTA();
 
+	void set(const char* str, unsigned int size);
+
 	unsigned int size() const;
 	char operator[](unsigned int cursor) const;
 

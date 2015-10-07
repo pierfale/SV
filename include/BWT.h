@@ -45,6 +45,7 @@ public:
 		sequence.add_end_marker(seq, '$');
 		_size = sequence.size();
 
+		std::cout << "Compute suffix table..." << std::endl;
 		SuffixTable::pre_compute(sequence);
 
 		_bwt = new Letter[_size];
@@ -52,6 +53,8 @@ public:
 		Letter current_suffix_letter = '\0';
 		unsigned int bwt_letter_count[LETTER_NUMBER+1];
 		memset(bwt_letter_count, 0, LETTER_NUMBER*sizeof(unsigned int));
+
+		std::cout << "Compute BWT..." << std::endl;
 
 		for(unsigned int i=0; i<_size; i++) {
 
@@ -61,14 +64,15 @@ public:
 			// C
 			if(sequence[_suffix_table[i]] != current_suffix_letter) {
 				current_suffix_letter = sequence[_suffix_table[i]];
-				_c[letter_to_index(current_suffix_letter)] = i;
+				_c[letter_to_index(current_suffix_letter)] = i-1; //for $
 			}
 
 			// Rank
+			bwt_letter_count[letter_to_index(_bwt[i])]++;
 			if(i%RankSample == 0) {
 				memcpy(_rank[i/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 			}
-			bwt_letter_count[letter_to_index(_bwt[i])]++;
+
 		}
 
 /*
@@ -77,27 +81,25 @@ public:
 			for(unsigned int j=_suffix_table[i]; j<sequence.size(); j++)
 				std::cout << sequence[j];
 			std::cout << std::endl;
-		}
+		}*/
 
-*/
+
 	}
 
 	Index rank(Letter l, Index i) {
 		unsigned int counter = 0;
-		if(i%RankSample != 0) {
+		while(i%RankSample != 0) {
+			if(_bwt[i] == toupper(l))
+				counter++;
 			i--;
-			while(i%RankSample != 0) {
-				if(_bwt[i] == toupper(l))
-					counter++;
-				i--;
-			}
+
 		}
 		return _rank[i/RankSample].letter[letter_to_index(l)]+counter;
 	}
 
 	template<typename SequenceType, typename ResultType>
 	void search(const SequenceType& sequence, ResultType& result, unsigned int z) {
-		_search(sequence, result, z, sequence.size()-1, 0, _size);
+		_search(sequence, result, z, sequence.size()-1, 1, _size);
 	}
 
 
@@ -116,6 +118,8 @@ private:
 	void _search(const SequenceType& sequence, ResultType& result, int z, int cursor, Index k, Index l) {
 		if(z < 0)
 			return;
+
+		//std::cout << "k=" << k << ", l=" << l << std::endl;
 
 		if(cursor < 0) {
 			for(int i=k; i<=l; i++)
@@ -143,11 +147,11 @@ private:
 	}
 
 	Index r_min(Letter l, Index prev_r_min) {
-		return _c[letter_to_index(l)]+rank(l, prev_r_min);
+		return _c[letter_to_index(l)]+rank(l, prev_r_min-1)+1;
 	}
 
 	Index r_max(Letter l, Index prev_r_max) {
-		return _c[letter_to_index(l)]+rank(l, prev_r_max+1)-1;
+		return _c[letter_to_index(l)]+rank(l, prev_r_max);
 	}
 
 };

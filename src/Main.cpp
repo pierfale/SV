@@ -5,7 +5,7 @@
 #include "Alignment.h"
 
 const char* usage() {
-	return "<sequence1_filename> <sequence2_filename>";
+	return "<fasta_filename> <fastq_filename>";
 }
 
 
@@ -16,27 +16,17 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}
 
-	DataFASTA sequence1;
-	ParserFASTA::process(std::string(argv[1]), sequence1);
+	DataFASTA sequence;
+	ParserFASTA::process(std::string(argv[1]), sequence);
 
-	//StaticFormat sequence1("tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga");
+	ParserFASTQ read_parser(argv[2]);
 
-	DataFASTA sequence2;
-	ParserFASTA::process(std::string(argv[2]), sequence2);
-
-
-
-	BWT sf;
-
-	StaticFormat seq("TATCGTGGTTTGTTTCAGAGCCATATCACCAAGATAGAGAACAACCTAGGTCTCCGGAGGGGGCAAGGGCATCAGTGTGCTCAGTTGAAAGTCCCTTGTCAACATCTAGGCCTTATCACATCACAAGTTCCGCCTTAAACTCTGCAGGGTGATCCAACAACCTTAATAGCAACATTATTGTTAAAGGACAGCCTTAGTTCCCAGTCAACCACGCAAGATTGAGAATTAACTTTGATTTTGACCCTGAACACCCAGAGGACTGGAGACTCAACACCCCTAAAGCCTCGGTTAAACCA");
-
-
-	Alignment::process(sequence1, seq);
+	Alignment::process(sequence, read_parser);
 	/*sf.pre_compute(sequence1);
 
 	std::vector<Index> list_index;
 
-	sf.search(StaticFormat("gacca"), list_index, 0);
+	sf.search(StaticFormat("gggg"), list_index, 1);
 
 	std::cout << "Result (" << list_index.size() << ") : " << std::endl;
 
@@ -46,8 +36,8 @@ int main(int argc, char** argv) {
 			std::cout << sequence1[*it+i];
 		std::cout << std::endl;
 
-	}*/
-
+	}
+*/
 	//DynamicAlign::process(sequence1, sequence2, 5, -4, -10, (sequence1.size() > sequence2.size() ? sequence1.size()-sequence2.size()  : sequence2.size()-sequence1.size())+30);
 	//Alignment::process(StaticFormat("tcagggcagggtcaccatgaccagggacacgtccatcagcacag--ccta"), StaticFormat("gaagaccaggctcaccatctccaaggacacctccaaaaac-caggtggtc"), 5, -4, -10, 10);
 

@@ -8,6 +8,14 @@ DataFASTA::~DataFASTA() {
 	free(_sequence);
 }
 
+void DataFASTA::set(const char* str, unsigned int size) {
+	free(_sequence);
+
+	_length = size;
+	_sequence = (char*)malloc(_length);
+	memcpy(_sequence, str, _length);
+}
+
 unsigned int DataFASTA::size() const {
 	return _length;
 }
