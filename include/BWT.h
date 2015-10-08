@@ -21,15 +21,11 @@ public:
 		switch(l) {
 
 		case 'A':
-		case 'a':
 			return 0;
-		case 'c':
 		case 'C':
 			return 1;
-		case 'g':
 		case 'G':
 			return 2;
-		case 't':
 		case 'T':
 			return 3;
 		case '$':
@@ -49,7 +45,7 @@ public:
 		SuffixTable::pre_compute(sequence);
 
 		_bwt = new Letter[_size];
-		_rank = new RankCell[_size/RankSample+1]; // TODO seq > RankSample ?
+		_rank = new RankCell[_size/RankSample+1];
 		Letter current_suffix_letter = '\0';
 		unsigned int bwt_letter_count[LETTER_NUMBER+1];
 		memset(bwt_letter_count, 0, LETTER_NUMBER*sizeof(unsigned int));
@@ -65,14 +61,20 @@ public:
 			if(sequence[_suffix_table[i]] != current_suffix_letter) {
 				current_suffix_letter = sequence[_suffix_table[i]];
 				_c[letter_to_index(current_suffix_letter)] = i-1; //for $
+				std::cout << "C " << current_suffix_letter << " : " << (i-1) << std::endl;
 			}
 
 			// Rank
 			bwt_letter_count[letter_to_index(_bwt[i])]++;
 			if(i%RankSample == 0) {
 				memcpy(_rank[i/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
+				//std::cout << _rank[i/RankSample].letter[0] << " | " << _rank[i/RankSample].letter[1] << " | " << _rank[i/RankSample].letter[2] << " | " << _rank[i/RankSample].letter[3] << std::endl;
 			}
 
+		}
+
+		if(_size/RankSample+1) {
+			memcpy(_rank[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 		}
 
 /*
@@ -83,7 +85,7 @@ public:
 			std::cout << std::endl;
 		}*/
 
-
+		//std::exit(0);
 	}
 
 	Index rank(Letter l, Index i) {
@@ -119,7 +121,6 @@ private:
 		if(z < 0)
 			return;
 
-		//std::cout << "k=" << k << ", l=" << l << std::endl;
 
 		if(cursor < 0) {
 			for(int i=k; i<=l; i++)
@@ -135,6 +136,9 @@ private:
 		for(unsigned current_letter = 0; current_letter < 4; current_letter++) {
 			Index current_k = r_min(list_letter[current_letter], k);
 			Index current_l = r_max(list_letter[current_letter], l);
+
+			std::cout << "k=" << k << ", l=" << l << ", cursor=" << cursor << ", z=" << z << std::endl;
+			std::cout << "rank_min=" << rank(list_letter[current_letter], k) << ", rank_max=" << rank(list_letter[current_letter], l) << std::endl;
 
 			if(current_k <= current_l) {
 				_search(sequence, result, z-1, cursor, current_k, current_l);

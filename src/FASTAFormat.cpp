@@ -40,10 +40,39 @@ void ParserFASTA::process(const std::string& filename, DataFASTA& data) {
 		std::streamsize length = file.gcount()-1;
 
 		if(length > 0) {
+			for(unsigned int i=0; i< length; i++) {
+				switch(buffer[i]) {
+
+				case 'a': buffer[i] = 'A'; break;
+				case 'A': break;
+				case 'c': buffer[i] = 'C'; break;
+				case 'C': break;
+				case 'g': buffer[i] = 'G'; break;
+				case 'G': break;
+				case 't': buffer[i] = 'T'; break;
+				case 'T': break;
+				default: switch(::rand()%4) {
+					case 0:
+						buffer[i] = 'A';
+						break;
+					case 1:
+						buffer[i] = 'C';
+						break;
+					case 2:
+						buffer[i] = 'G';
+						break;
+					case 3:
+						buffer[i] = 'T';
+						break;
+					}
+				}
+			}
+
 			unsigned int cursor = data._length;
 			data._length += length;
 			data._sequence = data._sequence != nullptr ? (char*)realloc(data._sequence, data._length) : (char*)malloc(data._length);
 			memcpy(data._sequence+cursor, buffer, length);
+
 		}
 
 	} while(!file.eof());

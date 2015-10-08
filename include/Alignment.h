@@ -39,7 +39,6 @@ public:
 		}
 
 		std::cout << "Seed result size : " << list_seed.size() << std::endl << std::endl;
-
 		int k_length = 10;
 
 		for(auto it = std::begin(list_seed); it != std::end(list_seed); ++it) {
