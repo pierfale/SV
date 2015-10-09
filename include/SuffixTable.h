@@ -25,16 +25,16 @@ public:
 		for(unsigned int i=0; i<sequence_size; i++)
 			_suffix_table[i] = i;
 
-		_compressed_sequence_size = sequence_size % 4 != 0 ? sequence_size/4+1 : sequence_size/4;
-		_compressed_sequence = new Base4[_compressed_sequence_size];
-		for(unsigned int i=0; i<_compressed_sequence_size; i++) {
-			_compressed_sequence[i].base_1 = Base4::base_2_base4(sequence[i*4]);
-			_compressed_sequence[i].base_2 = Base4::base_2_base4(i*4+1 < sequence_size ? sequence[i*4+1] : Base4::Base_A);
-			_compressed_sequence[i].base_3 = Base4::base_2_base4(i*4+2 < sequence_size ? sequence[i*4+2] : Base4::Base_A);
-			_compressed_sequence[i].base_4 = Base4::base_2_base4(i*4+3 < sequence_size ? sequence[i*4+3] : Base4::Base_A);
+		unsigned int compressed_sequence_size = sequence_size % 4 != 0 ? sequence_size/4+1 : sequence_size/4;
+		Base4* compressed_sequence = new Base4[compressed_sequence_size];
+		for(unsigned int i=0; i<compressed_sequence_size; i++) {
+			compressed_sequence[i].base_1 = Base4::base_2_base4(sequence[i*4]);
+			compressed_sequence[i].base_2 = Base4::base_2_base4(i*4+1 < sequence_size ? sequence[i*4+1] : Base4::Base_A);
+			compressed_sequence[i].base_3 = Base4::base_2_base4(i*4+2 < sequence_size ? sequence[i*4+2] : Base4::Base_A);
+			compressed_sequence[i].base_4 = Base4::base_2_base4(i*4+3 < sequence_size ? sequence[i*4+3] : Base4::Base_A);
 		}
 
-		std::sort(_suffix_table, _suffix_table+sequence_size, [sequence_size, &sequence, this](Index i1, Index i2) {
+		std::sort(_suffix_table, _suffix_table+sequence_size, [sequence_size, &sequence, compressed_sequence, compressed_sequence_size, this](Index i1, Index i2) {
 			if(i1%4 == i2%4) {
 				uint8_t mask = 0x0;
 
@@ -69,33 +69,33 @@ public:
 				case 3: mask |= mask_field_4.mask;
 				}
 
-				if((_compressed_sequence[i1/4].base & mask) != (_compressed_sequence[i2/4].base & mask)) {
+				if((compressed_sequence[i1/4].base & mask) != (compressed_sequence[i2/4].base & mask)) {
 					switch(i1%4) {
 						case 0:
-							if((_compressed_sequence[i1/4].base & mask_field_1.mask) != (_compressed_sequence[i2/4].base & mask_field_1.mask))
-								return (_compressed_sequence[i1/4].base & mask_field_1.mask) < (_compressed_sequence[i2/4].base & mask_field_1.mask);
+							if((compressed_sequence[i1/4].base & mask_field_1.mask) != (compressed_sequence[i2/4].base & mask_field_1.mask))
+								return (compressed_sequence[i1/4].base & mask_field_1.mask) < (compressed_sequence[i2/4].base & mask_field_1.mask);
 						case 1:
-							if((_compressed_sequence[i1/4].base & mask_field_2.mask) != (_compressed_sequence[i2/4].base & mask_field_2.mask))
-								return (_compressed_sequence[i1/4].base & mask_field_2.mask) < (_compressed_sequence[i2/4].base & mask_field_2.mask);
+							if((compressed_sequence[i1/4].base & mask_field_2.mask) != (compressed_sequence[i2/4].base & mask_field_2.mask))
+								return (compressed_sequence[i1/4].base & mask_field_2.mask) < (compressed_sequence[i2/4].base & mask_field_2.mask);
 						case 2:
-							if((_compressed_sequence[i1/4].base & mask_field_3.mask) != (_compressed_sequence[i2/4].base & mask_field_3.mask))
-								return (_compressed_sequence[i1/4].base & mask_field_3.mask) < (_compressed_sequence[i2/4].base & mask_field_3.mask);
+							if((compressed_sequence[i1/4].base & mask_field_3.mask) != (compressed_sequence[i2/4].base & mask_field_3.mask))
+								return (compressed_sequence[i1/4].base & mask_field_3.mask) < (compressed_sequence[i2/4].base & mask_field_3.mask);
 						case 3:
-							if((_compressed_sequence[i1/4].base & mask_field_4.mask) != (_compressed_sequence[i2/4].base & mask_field_4.mask))
-								return (_compressed_sequence[i1/4].base & mask_field_4.mask) < (_compressed_sequence[i2/4].base & mask_field_4.mask);
+							if((compressed_sequence[i1/4].base & mask_field_4.mask) != (compressed_sequence[i2/4].base & mask_field_4.mask))
+								return (compressed_sequence[i1/4].base & mask_field_4.mask) < (compressed_sequence[i2/4].base & mask_field_4.mask);
 					}
 				}
 
-				for(Index i = 1; (i1/4)+i < _compressed_sequence_size && (i2/4)+i < _compressed_sequence_size; i++) {
-					if(_compressed_sequence[i1/4+i] != _compressed_sequence[i2/4+i]) {
-						if((_compressed_sequence[i1/4+i].base & mask_field_1.mask) != (_compressed_sequence[i2/4+i].base & mask_field_1.mask))
-							return (_compressed_sequence[i1/4+i].base & mask_field_1.mask) < (_compressed_sequence[i2/4+i].base & mask_field_1.mask);
-						if((_compressed_sequence[i1/4+i].base & mask_field_2.mask) != (_compressed_sequence[i2/4+i].base & mask_field_2.mask))
-							return (_compressed_sequence[i1/4+i].base & mask_field_2.mask) < (_compressed_sequence[i2/4+i].base & mask_field_2.mask);
-						if((_compressed_sequence[i1/4+i].base & mask_field_3.mask) != (_compressed_sequence[i2/4+i].base & mask_field_3.mask))
-							return (_compressed_sequence[i1/4+i].base & mask_field_3.mask) < (_compressed_sequence[i2/4+i].base & mask_field_3.mask);
-						if((_compressed_sequence[i1/4+i].base & mask_field_4.mask) != (_compressed_sequence[i2/4+i].base & mask_field_4.mask))
-							return (_compressed_sequence[i1/4+i].base & mask_field_4.mask) < (_compressed_sequence[i2/4+i].base & mask_field_4.mask);
+				for(Index i = 1; (i1/4)+i < compressed_sequence_size && (i2/4)+i < compressed_sequence_size; i++) {
+					if(compressed_sequence[i1/4+i] != compressed_sequence[i2/4+i]) {
+						if((compressed_sequence[i1/4+i].base & mask_field_1.mask) != (compressed_sequence[i2/4+i].base & mask_field_1.mask))
+							return (compressed_sequence[i1/4+i].base & mask_field_1.mask) < (compressed_sequence[i2/4+i].base & mask_field_1.mask);
+						if((compressed_sequence[i1/4+i].base & mask_field_2.mask) != (compressed_sequence[i2/4+i].base & mask_field_2.mask))
+							return (compressed_sequence[i1/4+i].base & mask_field_2.mask) < (compressed_sequence[i2/4+i].base & mask_field_2.mask);
+						if((compressed_sequence[i1/4+i].base & mask_field_3.mask) != (compressed_sequence[i2/4+i].base & mask_field_3.mask))
+							return (compressed_sequence[i1/4+i].base & mask_field_3.mask) < (compressed_sequence[i2/4+i].base & mask_field_3.mask);
+						if((compressed_sequence[i1/4+i].base & mask_field_4.mask) != (compressed_sequence[i2/4+i].base & mask_field_4.mask))
+							return (compressed_sequence[i1/4+i].base & mask_field_4.mask) < (compressed_sequence[i2/4+i].base & mask_field_4.mask);
 					}
 				}
 			}
@@ -112,15 +112,17 @@ public:
 			return i1 > i2;
 		});
 
+		delete compressed_sequence;
 
+	}
+
+	Index operator[](unsigned int i) const {
+		return _suffix_table[i];
 	}
 
 
 protected:
 	 Index* _suffix_table;
-
-	 unsigned int _compressed_sequence_size;
-	 Base4* _compressed_sequence;
 
 
 };

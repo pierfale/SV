@@ -4,6 +4,10 @@ DataFASTA::DataFASTA() : _sequence(nullptr), _length(0) {
 
 }
 
+DataFASTA::DataFASTA(const DataFASTA& that) : _sequence((char*)malloc(that._length)), _length(that._length)  {
+	memcpy(_sequence, that._sequence, _length);
+}
+
 DataFASTA::~DataFASTA() {
 	free(_sequence);
 }

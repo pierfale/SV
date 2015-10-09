@@ -1,5 +1,4 @@
-# SV
-Science du Vivant - Alignement
+# Science du Vivant - Alignement
  
 Pierre Falez
 
@@ -14,6 +13,8 @@ Lorsque deux index sont à comparer, si ceux-ci sont aligné de la même façon 
 
 Pour la BWT, j'utilise un rank échantillionné pour gagner en place.
 
+De plus, je calcule la BWT et le rank sur l'inverse de la séquence dans le but de borner les erreurs dans la phase de recherche (Algorithme BWA)
+
 ### Méthode de recherche
 
 La méthode de recherche se fait grâce à l'algorithme du BWA, afin de permettre la recherche avec erreurs. J'ai choisi d'autoriser 2 erreurs sur les seed, ce qui est un bon compromis entre le temps et la flexibilité de recherche.
@@ -22,7 +23,9 @@ La méthode de recherche se fait grâce à l'algorithme du BWA, afin de permettr
 
 J'utilise la programmation dynamique sur le prefix puis le suffixe de la seed de façon séparé. Puis je réuni les deux parties.
 
+## Benchmark
 
+L'ensemble des benchmarks est réalisé sur les machines du m5.
 
 
 

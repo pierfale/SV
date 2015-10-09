@@ -13,6 +13,8 @@ class DataFASTA {
 
 public:
 	DataFASTA();
+	DataFASTA(const DataFASTA& that);
+
 	~DataFASTA();
 
 	void set(const char* str, unsigned int size);

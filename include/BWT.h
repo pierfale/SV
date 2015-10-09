@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <cstring>
 
-class BWT : public SuffixTable {
+class BWT {
 
 #define LETTER_NUMBER 4
 
@@ -42,7 +42,7 @@ public:
 		_size = sequence.size();
 
 		std::cout << "Compute suffix table..." << std::endl;
-		SuffixTable::pre_compute(sequence);
+		_suffix_table.pre_compute(sequence);
 
 		_bwt = new Letter[_size];
 		_rank = new RankCell[_size/RankSample+1];
@@ -76,6 +76,40 @@ public:
 			memcpy(_rank[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 		}
 
+		// Compute Inverse BWT
+
+		SequenceType sequence_reverse(seq);
+		sequence_reverse.reverse();
+		sequence_reverse.add_end_marker(seq, '$');
+
+		std::cout << "Compute reverse suffix table..." << std::endl;
+		SuffixTable suffix_table_reverse;
+		suffix_table_reverse.pre_compute(sequence_reverse);
+
+		_bwt_reverse = new Letter[_size];
+		_rank_reverse = new RankCell[_size/RankSample+1];
+		memset(bwt_letter_count, 0, LETTER_NUMBER*sizeof(unsigned int));
+
+		std::cout << "Compute reverse BWT..." << std::endl;
+
+		for(unsigned int i=0; i<_size; i++) {
+
+			// BWT
+			_bwt_reverse[i] = toupper(sequence[suffix_table_reverse[i] == 0 ? _size-1 : suffix_table_reverse[i]-1]);
+
+			// Rank
+			bwt_letter_count[letter_to_index(_bwt_reverse[i])]++;
+			if(i%RankSample == 0) {
+				memcpy(_rank_reverse[i/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
+			}
+
+		}
+
+		if(_size/RankSample+1) {
+			memcpy(_rank_reverse[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
+		}
+
+
 /*
 		for(unsigned int i=0; i<_size; i++) {
 			std::cout << i << " :\t";// << sequence[_suffix_table[i]] << " " << _bwt[i] << " -> " << _suffix_table[i] << std::endl;
@@ -87,37 +121,34 @@ public:
 		//std::exit(0);
 	}
 
-	Index rank(Letter l, Index i) {
-		unsigned int counter = 0;
-		while(i%RankSample != 0) {
-			if(_bwt[i] == toupper(l))
-				counter++;
-			i--;
-
-		}
-		return _rank[i/RankSample].letter[letter_to_index(l)]+counter;
-	}
-
 	template<typename SequenceType, typename ResultType>
 	void search(const SequenceType& sequence, ResultType& result, unsigned int z) {
+		compute_d(sequence);
 		_search(sequence, result, z, sequence.size()-1, 1, _size);
 	}
 
 
 private:
 	unsigned int _size;
+
+	SuffixTable _suffix_table;
+
 	Letter* _bwt;
-	Index _c[5];
+	Letter* _bwt_reverse;
+
+	Index _c[LETTER_NUMBER+1];
+	unsigned int* _d;
 
 	struct RankCell {
 		unsigned int letter[LETTER_NUMBER];
 	};
 
 	RankCell* _rank;
+	RankCell* _rank_reverse;
 
 	template<typename SequenceType, typename ResultType>
 	void _search(const SequenceType& sequence, ResultType& result, int z, int cursor, Index k, Index l) {
-		if(z < 0)
+		if(z < _d[cursor])
 			return;
 
 
@@ -146,6 +177,21 @@ private:
 		}
 	}
 
+	/*
+	 * Rank
+	 */
+
+	Index rank(Letter l, Index i) {
+		unsigned int counter = 0;
+		while(i%RankSample != 0) {
+			if(_bwt[i] == toupper(l))
+				counter++;
+			i--;
+
+		}
+		return _rank[i/RankSample].letter[letter_to_index(l)]+counter;
+	}
+
 	Index r_min(Letter l, Index prev_r_min) {
 		return _c[letter_to_index(l)]+rank(l, prev_r_min-1)+1;
 	}
@@ -154,6 +200,53 @@ private:
 		return _c[letter_to_index(l)]+rank(l, prev_r_max);
 	}
 
+	/*
+	 *	Reverse Rank
+	 */
+	Index rank_reverse(Letter l, Index i) {
+		unsigned int counter = 0;
+		while(i%RankSample != 0) {
+			if(_bwt_reverse[i] == toupper(l))
+				counter++;
+			i--;
+
+		}
+		return _rank_reverse[i/RankSample].letter[letter_to_index(l)]+counter;
+	}
+
+	Index r_min_reverse(Letter l, Index prev_r_min) {
+		return _c[letter_to_index(l)]+rank_reverse(l, prev_r_min-1)+1;
+	}
+
+	Index r_max_reverse(Letter l, Index prev_r_max) {
+		return _c[letter_to_index(l)]+rank_reverse(l, prev_r_max);
+	}
+
+	template<typename SequenceType>
+	void compute_d(const SequenceType& sequence) {
+		delete _d;
+
+		_d = new unsigned int[sequence.size()];
+
+		unsigned int k = 1;
+		unsigned int l = _size;
+		unsigned int z = 0;
+
+		for(unsigned int i=0; i<sequence.size(); i++) {
+			k = r_min_reverse(sequence[i], k);
+			l = r_max_reverse(sequence[i], l);
+
+			if(k >l) {
+				k = 1;
+				l = _size;
+				z++;
+			}
+
+			_d[i] = z;
+		}
+
+
+	}
 };
 
 #endif

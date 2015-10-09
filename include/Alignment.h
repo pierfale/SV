@@ -17,9 +17,11 @@ public:
 		index.pre_compute(ref_sequence);
 
 		DataFASTA read;
+		unsigned int cpt = 0;
 		while(parser.next(read)) {
-			std::cout << "### Read " << read << std::endl;
+			std::cout << "### [" << cpt << "] Read " << read << std::endl;
 			process(ref_sequence, read, index, seed_length, k_ratio);
+			cpt++;
 		}
 
 	}
