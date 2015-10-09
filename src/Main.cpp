@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
 	ParserFASTQ read_parser(argv[2]);
 
-	Alignment::process(sequence, read_parser);
+	Alignment::process(sequence, read_parser, 25, 0.1);
 	/*sf.pre_compute(sequence1);
 
 	std::vector<Index> list_index;

@@ -68,7 +68,6 @@ public:
 			bwt_letter_count[letter_to_index(_bwt[i])]++;
 			if(i%RankSample == 0) {
 				memcpy(_rank[i/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
-				//std::cout << _rank[i/RankSample].letter[0] << " | " << _rank[i/RankSample].letter[1] << " | " << _rank[i/RankSample].letter[2] << " | " << _rank[i/RankSample].letter[3] << std::endl;
 			}
 
 		}
@@ -136,9 +135,6 @@ private:
 		for(unsigned current_letter = 0; current_letter < 4; current_letter++) {
 			Index current_k = r_min(list_letter[current_letter], k);
 			Index current_l = r_max(list_letter[current_letter], l);
-
-			std::cout << "k=" << k << ", l=" << l << ", cursor=" << cursor << ", z=" << z << std::endl;
-			std::cout << "rank_min=" << rank(list_letter[current_letter], k) << ", rank_max=" << rank(list_letter[current_letter], l) << std::endl;
 
 			if(current_k <= current_l) {
 				_search(sequence, result, z-1, cursor, current_k, current_l);

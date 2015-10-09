@@ -11,7 +11,7 @@ class Alignment {
 public:
 
 	template<typename Sequence1Type>
-	static void process(const Sequence1Type& ref_sequence, ParserFASTQ& parser) {
+	static void process(const Sequence1Type& ref_sequence, ParserFASTQ& parser, unsigned int seed_length, float k_ratio) {
 		std::cout << "Pre compute..." << std::endl;
 		BWT index;
 		index.pre_compute(ref_sequence);
@@ -19,27 +19,26 @@ public:
 		DataFASTA read;
 		while(parser.next(read)) {
 			std::cout << "### Read " << read << std::endl;
-			process(ref_sequence, read, index);
+			process(ref_sequence, read, index, seed_length, k_ratio);
 		}
 
 	}
 
 	template<typename Sequence1Type, typename Sequence2Type, typename IndexType>
-	static void process(const Sequence1Type& ref_sequence, const Sequence2Type& read, IndexType& index) {
+	static void process(const Sequence1Type& ref_sequence, const Sequence2Type& read, IndexType& index, unsigned int seed_length, float k_ratio) {
 
-#define SEED_LENGTH 10
 		std::vector<std::pair<Index, Index>> list_seed;
-		for(unsigned int begin=0; begin+SEED_LENGTH < read.size(); begin += SEED_LENGTH) {
+		for(unsigned int begin=0; begin+seed_length < read.size(); begin += seed_length) {
 			std::vector<Index> list_index;
 			Sequence2Type current_read;
-			current_read.substr(read, begin, begin+SEED_LENGTH);
+			current_read.substr(read, begin, begin+seed_length);
 			index.search(current_read, list_index, 2);
 			for(auto it = list_index.begin(); it != list_index.end(); ++it)
 				list_seed.push_back(std::pair<Index, Index>(begin, *it));
 		}
 
 		std::cout << "Seed result size : " << list_seed.size() << std::endl << std::endl;
-		int k_length = 10;
+		int k_length = read.size()*k_ratio;
 
 		for(auto it = std::begin(list_seed); it != std::end(list_seed); ++it) {
 
@@ -69,7 +68,7 @@ public:
 			commands.insert(commands.end(), commands_before.begin(), commands_before.end());
 			commands.insert(commands.end(), commands_after.rbegin(), commands_after.rend());
 
-			if((float)DynamicAlign::error_count(commands)/(float)commands.size() <= 0.2) {
+			if((float)DynamicAlign::error_count(commands)/(float)commands.size() <= k_ratio) {
 				unsigned int count_sequence_before = 0;
 				for(auto it=commands_before.rbegin(); it != commands_before.rend(); ++it)
 					if(*it != DynamicAlign::INSERT)
