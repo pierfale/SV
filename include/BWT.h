@@ -61,7 +61,7 @@ public:
 			if(sequence[_suffix_table[i]] != current_suffix_letter) {
 				current_suffix_letter = sequence[_suffix_table[i]];
 				_c[letter_to_index(current_suffix_letter)] = i-1; //for $
-				std::cout << "C " << current_suffix_letter << " : " << (i-1) << std::endl;
+				std::cout << "C " << current_suffix_letter << " : " << i << std::endl;
 			}
 
 			// Rank
@@ -72,9 +72,8 @@ public:
 
 		}
 
-		if(_size/RankSample+1) {
-			memcpy(_rank[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
-		}
+		memcpy(_rank[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
+
 
 		// Compute Inverse BWT
 
@@ -105,9 +104,7 @@ public:
 
 		}
 
-		if(_size/RankSample+1) {
-			memcpy(_rank_reverse[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
-		}
+		memcpy(_rank_reverse[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 
 
 /*
@@ -137,7 +134,7 @@ private:
 	Letter* _bwt_reverse;
 
 	Index _c[LETTER_NUMBER+1];
-	unsigned int* _d;
+	int* _d;
 
 	struct RankCell {
 		unsigned int letter[LETTER_NUMBER];
@@ -148,7 +145,7 @@ private:
 
 	template<typename SequenceType, typename ResultType>
 	void _search(const SequenceType& sequence, ResultType& result, int z, int cursor, Index k, Index l) {
-		if(z < _d[cursor])
+		if(/*cursor >= 0 && z < _d[cursor]*/z < 0)
 			return;
 
 
@@ -158,6 +155,7 @@ private:
 					result.push_back(_suffix_table[i]);
 			return;
 		}
+
 
 		_search(sequence, result, z-1, cursor-1, k, l);
 
@@ -226,17 +224,17 @@ private:
 	void compute_d(const SequenceType& sequence) {
 		delete _d;
 
-		_d = new unsigned int[sequence.size()];
+		_d = new int[sequence.size()];
 
 		unsigned int k = 1;
 		unsigned int l = _size;
-		unsigned int z = 0;
+		int z = 0;
 
 		for(unsigned int i=0; i<sequence.size(); i++) {
 			k = r_min_reverse(sequence[i], k);
 			l = r_max_reverse(sequence[i], l);
 
-			if(k >l) {
+			if(k > l) {
 				k = 1;
 				l = _size;
 				z++;

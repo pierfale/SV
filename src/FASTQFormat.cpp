@@ -14,6 +14,7 @@ bool ParserFASTQ::next(DataFASTA& data) {
 	std::getline(_file, line); // ID String
 	std::getline(_file, line); // String
 	data.set(line.c_str(), line.size());
+
 	std::getline(_file, line); // ID String Quality
 	std::getline(_file, line); // String Quality
 

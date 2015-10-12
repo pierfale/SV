@@ -18,31 +18,43 @@ public:
 
 		DataFASTA read;
 		unsigned int cpt = 0;
+		unsigned int cpt_found = 0;
+
 		while(parser.next(read)) {
 			std::cout << "### [" << cpt << "] Read " << read << std::endl;
-			process(ref_sequence, read, index, seed_length, k_ratio);
+			if(process(ref_sequence, read, index, seed_length, k_ratio))
+				cpt_found++;
 			cpt++;
 		}
+
+		std::cout << "Found " << cpt_found << "/" << cpt << " (" << ((float)cpt_found/(float)cpt)*100.f << "%)" << std::endl;
 
 	}
 
 	template<typename Sequence1Type, typename Sequence2Type, typename IndexType>
-	static void process(const Sequence1Type& ref_sequence, const Sequence2Type& read, IndexType& index, unsigned int seed_length, float k_ratio) {
+	static bool process(const Sequence1Type& ref_sequence, const Sequence2Type& read, IndexType& index, unsigned int seed_length, float k_ratio) {
 
 		std::vector<std::pair<Index, Index>> list_seed;
+		std::vector<Index> start_match;
 		for(unsigned int begin=0; begin+seed_length < read.size(); begin += seed_length) {
 			std::vector<Index> list_index;
 			Sequence2Type current_read;
 			current_read.substr(read, begin, begin+seed_length);
 			index.search(current_read, list_index, 2);
 			for(auto it = list_index.begin(); it != list_index.end(); ++it)
-				list_seed.push_back(std::pair<Index, Index>(begin, *it));
+				if(std::find(start_match.begin(), start_match.end(), *it-begin) == start_match.end()) {
+					list_seed.push_back(std::pair<Index, Index>(begin, *it));
+					start_match.push_back(*it-begin);
+				}
 		}
 
 		std::cout << "Seed result size : " << list_seed.size() << std::endl << std::endl;
 		int k_length = read.size()*k_ratio;
 
+		bool found = false;
+
 		for(auto it = std::begin(list_seed); it != std::end(list_seed); ++it) {
+
 
 			if(it->second-k_length < it->first || it->second+read.size()-it->first+k_length >= ref_sequence.size())
 				continue;
@@ -62,8 +74,22 @@ public:
 			std::vector<DynamicAlign::Command> commands_before;
 			std::vector<DynamicAlign::Command> commands_after;
 
-			DynamicAlign::process(seq_before, read_before, 5, -4, -10, k_length, commands_before);
-			DynamicAlign::process(seq_after, read_after, 5, -4, -10, k_length, commands_after);
+			if(it->first > read.size()/2) {
+				DynamicAlign::process(seq_before, read_before, 5, -4, -10, k_length, commands_before);
+
+				if((float)DynamicAlign::error_count(commands_before)/(float)read.size() > k_ratio)
+					continue;
+
+				DynamicAlign::process(seq_after, read_after, 5, -4, -10, k_length, commands_after);
+			}
+			else {
+				DynamicAlign::process(seq_after, read_after, 5, -4, -10, k_length, commands_after);
+
+				if((float)DynamicAlign::error_count(commands_after)/(float)read.size() > k_ratio)
+					continue;
+
+				DynamicAlign::process(seq_before, read_before, 5, -4, -10, k_length, commands_before);
+			}
 
 			std::vector<DynamicAlign::Command> commands;
 
@@ -87,8 +113,11 @@ public:
 
 				DynamicAlign::display(seq_display, read, commands, 80);
 				std::cout << std::endl;
+				found = true;
 			}
 		}
+
+		return found;
 
 	}
 

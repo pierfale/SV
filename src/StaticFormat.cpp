@@ -5,7 +5,7 @@ StaticFormat::StaticFormat() : _sequence() {
 }
 
 StaticFormat::StaticFormat(const std::string& sequence) : _sequence(sequence) {
-
+	rewrite_sequence(_sequence);
 }
 
 unsigned int StaticFormat::size() const {

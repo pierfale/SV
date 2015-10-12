@@ -35,7 +35,7 @@ public:
 		}
 
 		std::sort(_suffix_table, _suffix_table+sequence_size, [sequence_size, &sequence, compressed_sequence, compressed_sequence_size, this](Index i1, Index i2) {
-			if(i1%4 == i2%4) {
+			/*if(i1%4 == i2%4) {
 				uint8_t mask = 0x0;
 
 				union mask_field {
@@ -99,7 +99,7 @@ public:
 					}
 				}
 			}
-			else {
+			else {*/
 
 				for(Index i = 0; i1+i < sequence_size && i2+i < sequence_size; i++) {
 					if(sequence[i1+i] != sequence[i2+i]) {
@@ -107,7 +107,7 @@ public:
 					}
 				}
 
-			}
+			/*}*/
 
 			return i1 > i2;
 		});

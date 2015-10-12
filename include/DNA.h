@@ -55,4 +55,35 @@ struct Base4 {
 	};
 };
 
+template<typename SequenceType>
+void rewrite_sequence(SequenceType& sequence) {
+	for(unsigned int i=0; i< sequence.size(); i++) {
+		switch(sequence[i]) {
+
+		case 'a': sequence[i] = 'A'; break;
+		case 'A': break;
+		case 'c': sequence[i] = 'C'; break;
+		case 'C': break;
+		case 'g': sequence[i] = 'G'; break;
+		case 'G': break;
+		case 't': sequence[i] = 'T'; break;
+		case 'T': break;
+		default: switch(::rand()%4) {
+			case 0:
+				sequence[i] = 'A';
+				break;
+			case 1:
+				sequence[i] = 'C';
+				break;
+			case 2:
+				sequence[i] = 'G';
+				break;
+			case 3:
+				sequence[i] = 'T';
+				break;
+			}
+		}
+	}
+}
+
 #endif

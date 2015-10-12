@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
+#include "DNA.h"
 
 class StaticFormat {
 

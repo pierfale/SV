@@ -18,6 +18,34 @@ void DataFASTA::set(const char* str, unsigned int size) {
 	_length = size;
 	_sequence = (char*)malloc(_length);
 	memcpy(_sequence, str, _length);
+
+	for(unsigned int i=0; i< _length; i++) {
+		switch(_sequence[i]) {
+
+		case 'a': _sequence[i] = 'A'; break;
+		case 'A': break;
+		case 'c': _sequence[i] = 'C'; break;
+		case 'C': break;
+		case 'g': _sequence[i] = 'G'; break;
+		case 'G': break;
+		case 't': _sequence[i] = 'T'; break;
+		case 'T': break;
+		default: switch(::rand()%4) {
+			case 0:
+				_sequence[i] = 'A';
+				break;
+			case 1:
+				_sequence[i] = 'C';
+				break;
+			case 2:
+				_sequence[i] = 'G';
+				break;
+			case 3:
+				_sequence[i] = 'T';
+				break;
+			}
+		}
+	}
 }
 
 unsigned int DataFASTA::size() const {
