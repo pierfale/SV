@@ -48,7 +48,7 @@ public:
 		_rank = new RankCell[_size/RankSample+1];
 		Letter current_suffix_letter = '\0';
 		unsigned int bwt_letter_count[LETTER_NUMBER+1];
-		memset(bwt_letter_count, 0, LETTER_NUMBER*sizeof(unsigned int));
+		memset(bwt_letter_count, 0, (LETTER_NUMBER+1)*sizeof(unsigned int));
 
 		std::cout << "Compute BWT..." << std::endl;
 
@@ -60,26 +60,28 @@ public:
 			// C
 			if(sequence[_suffix_table[i]] != current_suffix_letter) {
 				current_suffix_letter = sequence[_suffix_table[i]];
-				_c[letter_to_index(current_suffix_letter)] = i-1; //for $
+				_c[letter_to_index(current_suffix_letter)] = i;
 				std::cout << "C " << current_suffix_letter << " : " << i << std::endl;
 			}
 
 			// Rank
-			bwt_letter_count[letter_to_index(_bwt[i])]++;
 			if(i%RankSample == 0) {
 				memcpy(_rank[i/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 			}
+			bwt_letter_count[letter_to_index(_bwt[i])]++;
 
 		}
 
-		memcpy(_rank[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
+		//if((_size/RankSample)%RankSample == 0)
+			memcpy(_rank[(unsigned int)ceil((float)_size/(float)RankSample)].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 
 
 		// Compute Inverse BWT
 
-		SequenceType sequence_reverse(seq);
-		sequence_reverse.reverse();
-		sequence_reverse.add_end_marker(seq, '$');
+		SequenceType sequence_reverse_(seq);
+		sequence_reverse_.reverse();
+		SequenceType sequence_reverse;
+		sequence_reverse.add_end_marker(sequence_reverse_, '$');
 
 		std::cout << "Compute reverse suffix table..." << std::endl;
 		SuffixTable suffix_table_reverse;
@@ -87,24 +89,25 @@ public:
 
 		_bwt_reverse = new Letter[_size];
 		_rank_reverse = new RankCell[_size/RankSample+1];
-		memset(bwt_letter_count, 0, LETTER_NUMBER*sizeof(unsigned int));
+		memset(bwt_letter_count, 0, (LETTER_NUMBER+1)*sizeof(unsigned int));
 
 		std::cout << "Compute reverse BWT..." << std::endl;
 
 		for(unsigned int i=0; i<_size; i++) {
 
 			// BWT
-			_bwt_reverse[i] = toupper(sequence[suffix_table_reverse[i] == 0 ? _size-1 : suffix_table_reverse[i]-1]);
+			_bwt_reverse[i] = toupper(sequence_reverse[suffix_table_reverse[i] == 0 ? _size-1 : suffix_table_reverse[i]-1]);
 
 			// Rank
-			bwt_letter_count[letter_to_index(_bwt_reverse[i])]++;
 			if(i%RankSample == 0) {
 				memcpy(_rank_reverse[i/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 			}
+			bwt_letter_count[letter_to_index(_bwt_reverse[i])]++;
 
 		}
 
-		memcpy(_rank_reverse[_size/RankSample].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
+		//if((_size/RankSample)%RankSample == 0)
+			memcpy(_rank_reverse[(unsigned int)ceil((float)_size/(float)RankSample)].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 
 
 /*
@@ -114,7 +117,14 @@ public:
 				std::cout << sequence[j];
 			std::cout << std::endl;
 		}*/
-
+/*
+		for(unsigned int i=0; i<_size; i++) {
+			std::cout << i << " :\t";
+			for(unsigned int j=suffix_table_reverse[i]; j<sequence.size(); j++)
+				std::cout << sequence_reverse[j];
+			std::cout << std::endl;
+		}
+*/
 		//std::exit(0);
 	}
 
@@ -145,14 +155,15 @@ private:
 
 	template<typename SequenceType, typename ResultType>
 	void _search(const SequenceType& sequence, ResultType& result, int z, int cursor, Index k, Index l) {
-		if(/*cursor >= 0 && z < _d[cursor]*/z < 0)
+		if((cursor >= 0 && z < _d[cursor]) || z < 0)
 			return;
 
 
 		if(cursor < 0) {
 			for(int i=k; i<=l; i++)
-				if(std::find(std::begin(result), std::end(result), _suffix_table[i]) == std::end(result))
-					result.push_back(_suffix_table[i]);
+				if(std::find(std::begin(result), std::end(result), _suffix_table[i-1]) == std::end(result)) {
+					result.push_back(_suffix_table[i-1]);
+				}
 			return;
 		}
 
@@ -181,10 +192,15 @@ private:
 
 	Index rank(Letter l, Index i) {
 		unsigned int counter = 0;
-		while(i%RankSample != 0) {
+		if(i%RankSample != 0) {
+			i--;
+			while(i%RankSample != 0) {
+				if(_bwt[i] == toupper(l))
+					counter++;
+				i--;
+			}
 			if(_bwt[i] == toupper(l))
 				counter++;
-			i--;
 
 		}
 		return _rank[i/RankSample].letter[letter_to_index(l)]+counter;
@@ -203,10 +219,15 @@ private:
 	 */
 	Index rank_reverse(Letter l, Index i) {
 		unsigned int counter = 0;
-		while(i%RankSample != 0) {
+		if(i%RankSample != 0) {
+			i--;
+			while(i%RankSample != 0) {
+				if(_bwt_reverse[i] == toupper(l))
+					counter++;
+				i--;
+			}
 			if(_bwt_reverse[i] == toupper(l))
 				counter++;
-			i--;
 
 		}
 		return _rank_reverse[i/RankSample].letter[letter_to_index(l)]+counter;
@@ -231,6 +252,8 @@ private:
 		int z = 0;
 
 		for(unsigned int i=0; i<sequence.size(); i++) {
+
+
 			k = r_min_reverse(sequence[i], k);
 			l = r_max_reverse(sequence[i], l);
 
@@ -239,7 +262,6 @@ private:
 				l = _size;
 				z++;
 			}
-
 			_d[i] = z;
 		}
 

@@ -11,7 +11,7 @@ class Alignment {
 public:
 
 	template<typename Sequence1Type>
-	static void process(const Sequence1Type& ref_sequence, ParserFASTQ& parser, unsigned int seed_length, float k_ratio) {
+	static void process(const Sequence1Type& ref_sequence, ParserFASTQ& parser, unsigned int seed_length, float k_ratio, int match_score, int mismatch_score, int indel_score) {
 		std::cout << "Pre compute..." << std::endl;
 		BWT index;
 		index.pre_compute(ref_sequence);
@@ -22,7 +22,7 @@ public:
 
 		while(parser.next(read)) {
 			std::cout << "### [" << cpt << "] Read " << read << std::endl;
-			if(process(ref_sequence, read, index, seed_length, k_ratio))
+			if(process(ref_sequence, read, index, seed_length, k_ratio, match_score, mismatch_score, indel_score))
 				cpt_found++;
 			cpt++;
 		}
@@ -32,7 +32,7 @@ public:
 	}
 
 	template<typename Sequence1Type, typename Sequence2Type, typename IndexType>
-	static bool process(const Sequence1Type& ref_sequence, const Sequence2Type& read, IndexType& index, unsigned int seed_length, float k_ratio) {
+	static bool process(const Sequence1Type& ref_sequence, const Sequence2Type& read, IndexType& index, unsigned int seed_length, float k_ratio, int match_score, int mismatch_score, int indel_score) {
 
 		std::vector<std::pair<Index, Index>> list_seed;
 		std::vector<Index> start_match;
@@ -75,20 +75,20 @@ public:
 			std::vector<DynamicAlign::Command> commands_after;
 
 			if(it->first > read.size()/2) {
-				DynamicAlign::process(seq_before, read_before, 5, -4, -10, k_length, commands_before);
-
-				if((float)DynamicAlign::error_count(commands_before)/(float)read.size() > k_ratio)
+				DynamicAlign::process(seq_before, read_before, match_score, mismatch_score, indel_score, k_length, commands_before);
+/*
+				if(DynamicAlign::error_ratio(commands_before, match_score, mismatch_score, indel_score, read.size()) > k_ratio)
 					continue;
-
-				DynamicAlign::process(seq_after, read_after, 5, -4, -10, k_length, commands_after);
+*/
+				DynamicAlign::process(seq_after, read_after, match_score, mismatch_score, indel_score, k_length, commands_after);
 			}
 			else {
-				DynamicAlign::process(seq_after, read_after, 5, -4, -10, k_length, commands_after);
-
-				if((float)DynamicAlign::error_count(commands_after)/(float)read.size() > k_ratio)
+				DynamicAlign::process(seq_after, read_after, match_score, mismatch_score, indel_score, k_length, commands_after);
+/*
+				if(DynamicAlign::error_ratio(commands_after, match_score, mismatch_score, indel_score, read.size()) > k_ratio)
 					continue;
-
-				DynamicAlign::process(seq_before, read_before, 5, -4, -10, k_length, commands_before);
+*/
+				DynamicAlign::process(seq_before, read_before, match_score, mismatch_score, indel_score, k_length, commands_before);
 			}
 
 			std::vector<DynamicAlign::Command> commands;
@@ -96,7 +96,9 @@ public:
 			commands.insert(commands.end(), commands_before.begin(), commands_before.end());
 			commands.insert(commands.end(), commands_after.rbegin(), commands_after.rend());
 
-			if((float)DynamicAlign::error_count(commands)/(float)commands.size() <= k_ratio) {
+
+
+			if(DynamicAlign::error_ratio(commands, match_score, mismatch_score, indel_score, commands.size()) <= k_ratio) {
 				unsigned int count_sequence_before = 0;
 				for(auto it=commands_before.rbegin(); it != commands_before.rend(); ++it)
 					if(*it != DynamicAlign::INSERT)
@@ -107,7 +109,7 @@ public:
 				seq_display.reverse();
 				seq_display.append(seq_after);
 
-				std::cout << "Read (error_rate : " << ((float)DynamicAlign::error_count(commands)/(float)commands.size()*100.0f)
+				std::cout << "Read (error_rate : " << (DynamicAlign::error_ratio(commands, match_score, mismatch_score, indel_score, commands.size())*100.0f)
 						  << "%) | Start at position " << (it->second-count_sequence_before)
 						  << " | Seed position : " << it->first << std::endl;
 

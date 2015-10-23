@@ -117,13 +117,28 @@ public:
 	}
 
 	template<template<typename, typename...> class OutputType>
-	static unsigned int error_count(OutputType<Command>& backtrace) {
-		unsigned int counter = 0;
+	static float error_ratio(OutputType<Command>& backtrace, int match_score, int mismatch_score, int indel_score, unsigned int total_size) {
+
+		auto list = {match_score, mismatch_score, indel_score};
+		auto minmax = std::minmax_element(std::begin(list), std::end(list));
+		float range = *minmax.second-*minmax.first;
+
+		float counter = 0.f;
 		for(auto it=backtrace.begin(); it < backtrace.end(); ++it) {
-			if(*it == INSERT || *it == DELETE || *it == MISMATCH)
-				counter++;
+			if(*it == INSERT || *it == DELETE)
+				counter +=  ((float)(indel_score-*minmax.first))/range;
+			else if(*it == MISMATCH)
+				counter += ((float)(mismatch_score-*minmax.first))/range;
+			else if(*it == MATCH)
+				counter += ((float)(match_score-*minmax.first))/range;
+
 		}
-		return counter;
+/*
+		std::cout << ((float)(indel_score-*minmax.first))/range << std::endl;
+		std::cout << ((float)(mismatch_score-*minmax.first))/range << std::endl;
+		std::cout << ((float)(match_score-*minmax.first))/range << std::endl;
+*/
+		return 1.0-counter/(float)backtrace.size();
 	}
 
 	template<typename Sequence1Type, typename Sequence2Type, template<typename, typename...> class OutputType>
