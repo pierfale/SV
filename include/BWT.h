@@ -45,7 +45,7 @@ public:
 		_suffix_table.pre_compute(sequence);
 
 		_bwt = new Letter[_size];
-		_rank = new RankCell[_size/RankSample+1];
+		_rank = new RankCell[(unsigned int)ceil((float)_size/(float)RankSample)+1];
 		Letter current_suffix_letter = '\0';
 		unsigned int bwt_letter_count[LETTER_NUMBER+1];
 		memset(bwt_letter_count, 0, (LETTER_NUMBER+1)*sizeof(unsigned int));
@@ -61,7 +61,6 @@ public:
 			if(sequence[_suffix_table[i]] != current_suffix_letter) {
 				current_suffix_letter = sequence[_suffix_table[i]];
 				_c[letter_to_index(current_suffix_letter)] = i;
-				std::cout << "C " << current_suffix_letter << " : " << i << std::endl;
 			}
 
 			// Rank
@@ -71,9 +70,7 @@ public:
 			bwt_letter_count[letter_to_index(_bwt[i])]++;
 
 		}
-
-		//if((_size/RankSample)%RankSample == 0)
-			memcpy(_rank[(unsigned int)ceil((float)_size/(float)RankSample)].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
+		memcpy(_rank[(unsigned int)ceil((float)_size/(float)RankSample)].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 
 
 		// Compute Inverse BWT
@@ -88,7 +85,7 @@ public:
 		suffix_table_reverse.pre_compute(sequence_reverse);
 
 		_bwt_reverse = new Letter[_size];
-		_rank_reverse = new RankCell[_size/RankSample+1];
+		_rank_reverse = new RankCell[(unsigned int)ceil((float)_size/(float)RankSample)+1];
 		memset(bwt_letter_count, 0, (LETTER_NUMBER+1)*sizeof(unsigned int));
 
 		std::cout << "Compute reverse BWT..." << std::endl;
@@ -105,27 +102,8 @@ public:
 			bwt_letter_count[letter_to_index(_bwt_reverse[i])]++;
 
 		}
+		memcpy(_rank_reverse[(unsigned int)ceil((float)_size/(float)RankSample)].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
 
-		//if((_size/RankSample)%RankSample == 0)
-			memcpy(_rank_reverse[(unsigned int)ceil((float)_size/(float)RankSample)].letter, bwt_letter_count, LETTER_NUMBER*sizeof(unsigned int));
-
-
-/*
-		for(unsigned int i=0; i<_size; i++) {
-			std::cout << i << " :\t";// << sequence[_suffix_table[i]] << " " << _bwt[i] << " -> " << _suffix_table[i] << std::endl;
-			for(unsigned int j=_suffix_table[i]; j<sequence.size(); j++)
-				std::cout << sequence[j];
-			std::cout << std::endl;
-		}*/
-/*
-		for(unsigned int i=0; i<_size; i++) {
-			std::cout << i << " :\t";
-			for(unsigned int j=suffix_table_reverse[i]; j<sequence.size(); j++)
-				std::cout << sequence_reverse[j];
-			std::cout << std::endl;
-		}
-*/
-		//std::exit(0);
 	}
 
 	template<typename SequenceType, typename ResultType>
@@ -243,7 +221,7 @@ private:
 
 	template<typename SequenceType>
 	void compute_d(const SequenceType& sequence) {
-		delete _d;
+		delete[] _d;
 
 		_d = new int[sequence.size()];
 

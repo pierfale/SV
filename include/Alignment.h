@@ -24,6 +24,11 @@ public:
 			std::cout << "### [" << cpt << "] Read " << read << std::endl;
 			if(process(ref_sequence, read, index, seed_length, k_ratio, match_score, mismatch_score, indel_score))
 				cpt_found++;
+			else {
+				read.reverse();
+				if(process(ref_sequence, read, index, seed_length, k_ratio, match_score, mismatch_score, indel_score))
+					cpt_found++;
+			}
 			cpt++;
 		}
 

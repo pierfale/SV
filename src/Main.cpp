@@ -22,8 +22,7 @@ int main(int argc, char** argv) {
 	ParserFASTQ read_parser(argv[2]);
 
 	Alignment::process(sequence, read_parser, 25, 0.1, 5, -4, -10);
-
-	/*
+/*
 	StaticFormat sequence1("tgggatggatcaaccctaacagtggtggcacaaactatgcacagaagtttcagggcagggtcaccatgaccagggacacgtccatcagcacagcctacatggagctgagcaggctgagatctgacgacacggccgtgtattactgtgcgagaga");
 
 	BWT sf;

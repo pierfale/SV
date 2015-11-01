@@ -62,20 +62,6 @@ public:
 
 			}
 		}
-/*
-		std::cout << " \t";
-		for(unsigned int i=0; i<sequence.size()+1; i++)
-			std::cout << (i == 0 ? ' ' :sequence[i-1]) << "\t";
-		std::cout << std::endl;
-
-		for(unsigned int j=0; j<read.size()+1; j++) {
-			std::cout << (j == 0 ? ' ' : read[j-1]) << "\t";
-			for(unsigned int i=0; i<sequence.size()+1; i++) {
-				std::cout << (IN_K_BAND(i, j) ? dynamic_array[COORD_2D(i, j)] : 0) << "\t";
-			}
-			std::cout << std::endl;
-		}
-*/
 		/*
 		 *	Search max
 		 */
@@ -83,8 +69,6 @@ public:
 		int* max_ptr = std::max_element(&dynamic_array[COORD_2D(START_K_BAND(read.size()), read.size())], &dynamic_array[COORD_2D(sequence.size()+1, read.size())]);
 
 		std::pair<int, int> current_coord(GET_I(max_ptr-dynamic_array), GET_J(max_ptr-dynamic_array));
-
-		//std::cout << "max : (" << current_coord.first << ";" << current_coord.second << ") = " << *max_ptr << std::endl;
 
 		/*
 		 *	Backtrace
@@ -124,6 +108,7 @@ public:
 		float range = *minmax.second-*minmax.first;
 
 		float counter = 0.f;
+
 		for(auto it=backtrace.begin(); it < backtrace.end(); ++it) {
 			if(*it == INSERT || *it == DELETE)
 				counter +=  ((float)(indel_score-*minmax.first))/range;
@@ -133,11 +118,7 @@ public:
 				counter += ((float)(match_score-*minmax.first))/range;
 
 		}
-/*
-		std::cout << ((float)(indel_score-*minmax.first))/range << std::endl;
-		std::cout << ((float)(mismatch_score-*minmax.first))/range << std::endl;
-		std::cout << ((float)(match_score-*minmax.first))/range << std::endl;
-*/
+
 		return 1.0-counter/(float)backtrace.size();
 	}
 
@@ -154,10 +135,6 @@ public:
 				else
 					std::cout << (cursor_sequence1 < sequence1.size() ? sequence1[cursor_sequence1++] : ' ');
 			}
-			/*while(i < line_length && cursor_sequence1 < sequence1.size()) {
-				std::cout << sequence1[cursor_sequence1++];
-				i++;
-			}*/
 			std::cout << std::endl;
 			i = 0;
 			for(auto it2(it); it2 != backtrace.end() && i < line_length; ++it2, i++) {
@@ -174,27 +151,8 @@ public:
 				else
 					std::cout << (cursor_sequence2 < sequence2.size() ? sequence2[cursor_sequence2++] : ' ');
 			}
-		/*	while(i < line_length && cursor_sequence2 < sequence2.size()) {
-				std::cout << sequence2[cursor_sequence2++];
-				i++;
-			}*/
 			std::cout << std::endl;
 		}
-/*
-		while(cursor_sequence1 < sequence1.size() || cursor_sequence2 < sequence2.size()) {
-			if(cursor_sequence1 >= sequence1.size())
-				std::cout << std::endl << std::endl;
-			for(unsigned int i=0; cursor_sequence1 < sequence1.size() && i < line_length; i++) {
-				std::cout << sequence1[cursor_sequence1++];
-			}
-			std::cout << std::endl << std::endl;
-			if(cursor_sequence2 >= sequence2.size())
-				std::cout << std::endl << std::endl;
-			for(unsigned int i=0; cursor_sequence2 < sequence2.size() && i < line_length; i++) {
-				std::cout << sequence2[cursor_sequence2++];
-			}
-			std::cout << std::endl;
-		}*/
 
 	}
 };
